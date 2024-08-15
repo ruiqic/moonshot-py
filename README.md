@@ -1,7 +1,12 @@
 # Moonshot
 Unofficial [Moonshot](https://github.com/wen-moon-ser/moonshot-sdk) Python SDK
 
-Requires `python=3.10`.
+Requires `python=3.10`. Clone and install:
+```console
+git clone https://github.com/ruiqic/moonshot-py.git
+cd moonshot-py
+pip install -e .
+```
 
 ## Example Usage
 ```python
