@@ -43,5 +43,7 @@ async def get_curve_account(
     curve_account_pubkey: Pubkey,
 ) -> CurveAccount:
     data_and_slot = await get_account_data_and_slot(curve_account_pubkey, program)
+    if data_and_slot is None:
+        raise ValueError("Curve finalized: liquidity migrated from Moonshot.")
     return cast(CurveAccount, data_and_slot.data)
 
