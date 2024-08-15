@@ -22,6 +22,8 @@ from pathlib import Path
 
 import moonshot
 from moonshot.constants import MOONSHOT_PROGRAM_ID, HELIO_FEE_ID, DEX_FEE_ID, CONFIG_ACCOUNT_ID
+from moonshot.types import is_variant, CurveAccount, CurveType, TradeType
+from moonshot.curve import ConstantProductCurveV1
 from moonshot.get_accounts import get_curve_account
 
 DEFAULT_TX_OPTIONS = TxOpts(skip_confirmation=False, preflight_commitment=Processed)
@@ -59,8 +61,41 @@ class TokenLaunchpad:
         self.curve_token_account_pubkey = get_associated_token_address(self.curve_account_pubkey, token_mint)
         self.token_account_pubkey = get_associated_token_address(self.authority, token_mint)
 
+        self.curve = None
+
+    async def get_tokens_amount_from_collateral(
+        self,
+        amount: int,
+        trade_direction: TradeType
+    ):
+        curve_account = await self.get_curve_account()
+        if self.curve is None:
+            self.curve = self.get_curve(curve_account)
+        curve_position = curve_account.total_supply - curve_account.curve_amount
+        return self.curve.get_tokens_amount_from_collateral(amount, curve_position, trade_direction)
+
+    async def get_collateral_amount_from_tokens(
+        self,
+        amount: int,
+        trade_direction: TradeType
+    ):
+        curve_account = await self.get_curve_account()
+        if self.curve is None:
+            self.curve = self.get_curve(curve_account)
+        curve_position = curve_account.total_supply - curve_account.curve_amount
+        return self.curve.get_collateral_amount_from_tokens(amount, curve_position, trade_direction)
+
     async def get_curve_account(self):
         return await get_curve_account(self.program, self.curve_account_pubkey)
+    
+    def get_curve(self, curve_account: CurveAccount):
+        if is_variant(curve_account.curve_type, "ConstantProductV1"):
+            return ConstantProductCurveV1()
+        elif is_variant(curve_account.curve_type, "ConstantProductV1"):
+            pass
+        else:
+            raise NotImplementedError("Invalid curve type")
+
 
 
 
