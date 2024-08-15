@@ -22,7 +22,7 @@ from moonshot.types import is_variant, CurveAccount, TradeType, FixedSide, Trade
 from moonshot.curve import AbstractCurve, ConstantProductCurveV1, LinearCurveV1
 from moonshot.get_accounts import get_curve_account
 
-DEFAULT_TX_OPTIONS = TxOpts(skip_confirmation=True, skip_preflight=False, preflight_commitment=Processed)
+DEFAULT_TX_OPTIONS = TxOpts(skip_confirmation=False, skip_preflight=False, preflight_commitment=Processed)
 DEFAULT_FIXED_SIDE = FixedSide.ExactIn()
 
 class TokenLaunchpad:
