@@ -138,7 +138,50 @@ class TokenLaunchpad:
         )
         return ix
 
+    async def get_sell_ix(
+        self,
+        amount: int,
+        fixed_side: FixedSide = None,
+        slippage_bps: int = 100
+    ):
+        if fixed_side is None:
+            fixed_side = DEFAULT_FIXED_SIDE
 
+        if is_variant(fixed_side, "ExactOut"):
+            collateral_amount = amount
+            token_amount = await self.get_token_amount_by_collateral(collateral_amount, TradeType.Sell())
+        else:
+            token_amount = amount
+            collateral_amount = await self.get_collateral_amount_by_tokens(token_amount, TradeType.Sell())
+
+        trade_params = TradeParams(
+            token_amount=token_amount,
+            collateral_amount=collateral_amount,
+            fixed_side=fixed_side.index,
+            slippage_bps=slippage_bps
+        )
+
+        ix = self.program.instruction["sell"](
+            trade_params,
+            ctx=Context(
+                accounts={
+                    "sender": self.authority,
+                    "sender_token_account": self.token_account_pubkey,
+                    "curve_account": self.curve_account_pubkey,
+                    "curve_token_account": self.curve_token_account_pubkey,
+                    "dex_fee": DEX_FEE_ID,
+                    "helio_fee": HELIO_FEE_ID,
+                    "mint": self.token_mint,
+                    "config_account": CONFIG_ACCOUNT_ID,
+                    "token_program": TOKEN_PROGRAM_ID,
+                    "associated_token_program": ASSOCIATED_TOKEN_PROGRAM_ID,
+                    "system_program": SYS_PROGRAM_ID,
+                },
+            ),
+        )
+        return ix
+    
+    
 
 
 
