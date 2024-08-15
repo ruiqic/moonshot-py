@@ -21,7 +21,7 @@ from moonshot.constants import TOKEN_PRECISION
 from moonshot.types import FixedSide
 
 connection = AsyncClient("https://api.mainnet-beta.solana.com/") # mainnet RPC
-keypair_file = os.environ.get('FILLER_KEY_FILE_PATH')
+keypair_file = os.environ.get('KEYPAIR_FILE_PATH')
 keypair = load_keypair(keypair_file) # your keypair.json file
 wallet = Wallet(keypair)
 
