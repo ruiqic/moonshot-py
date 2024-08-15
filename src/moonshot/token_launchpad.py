@@ -14,7 +14,7 @@ from solders.system_program import ID as SYS_PROGRAM_ID
 from spl.token.instructions import get_associated_token_address
 from anchorpy import Program, Context, Idl, Provider, Wallet
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Iterable, Union
 
 import moonshot
 from moonshot.constants import MOONSHOT_PROGRAM_ID, HELIO_FEE_ID, DEX_FEE_ID, CONFIG_ACCOUNT_ID
@@ -185,13 +185,16 @@ class TokenLaunchpad:
 
     async def send_ix(
         self,
-        ix : Instruction,
+        ix : Union[Instruction, Iterable[Instruction]],
         compute_unit_price: int = 20_000,
         compute_unit_limit: int = 100_000,
     ) -> Signature:
         compute_price_ix = set_compute_unit_price(compute_unit_price)
         compute_limit_ix = set_compute_unit_limit(compute_unit_limit)
-        ixs = [compute_limit_ix, compute_price_ix, ix]
+        if isinstance(ix, Instruction):
+            ixs = [compute_limit_ix, compute_price_ix, ix]
+        else:
+            ixs = [compute_limit_ix, compute_price_ix] + list(ix)
 
         latest_blockhash = await self.fetch_latest_blockhash()
         msg = MessageV0.try_compile(
