@@ -22,11 +22,12 @@ from pathlib import Path
 
 import moonshot
 from moonshot.constants import MOONSHOT_PROGRAM_ID, HELIO_FEE_ID, DEX_FEE_ID, CONFIG_ACCOUNT_ID
-from moonshot.types import is_variant, CurveAccount, CurveType, TradeType
+from moonshot.types import is_variant, CurveAccount, CurveType, TradeType, FixedSide, TradeParams
 from moonshot.curve import ConstantProductCurveV1, LinearCurveV1
 from moonshot.get_accounts import get_curve_account
 
 DEFAULT_TX_OPTIONS = TxOpts(skip_confirmation=False, preflight_commitment=Processed)
+DEFAULT_FIXED_SIDE = FixedSide.ExactIn()
 
 class TokenLaunchpad:
     def __init__(
@@ -94,6 +95,48 @@ class TokenLaunchpad:
         else:
             raise NotImplementedError("Invalid curve type")
 
+    async def get_buy_ix(
+        self,
+        amount: int,
+        fixed_side: FixedSide = None,
+        slippage_bps: int = 100
+    ):
+        if fixed_side is None:
+            fixed_side = DEFAULT_FIXED_SIDE
+
+        if is_variant(fixed_side, "ExactIn"):
+            collateral_amount = amount
+            token_amount = await self.get_token_amount_by_collateral(collateral_amount, TradeType.Buy())
+        else:
+            token_amount = amount
+            collateral_amount = await self.get_collateral_amount_by_tokens(token_amount, TradeType.Buy())
+
+        trade_params = TradeParams(
+            token_amount=token_amount,
+            collateral_amount=collateral_amount,
+            fixed_side=fixed_side.index,
+            slippage_bps=slippage_bps
+        )
+
+        ix = self.program.instruction["buy"](
+            trade_params,
+            ctx=Context(
+                accounts={
+                    "sender": self.authority,
+                    "sender_token_account": self.token_account_pubkey,
+                    "curve_account": self.curve_account_pubkey,
+                    "curve_token_account": self.curve_token_account_pubkey,
+                    "dex_fee": DEX_FEE_ID,
+                    "helio_fee": HELIO_FEE_ID,
+                    "mint": self.token_mint,
+                    "config_account": CONFIG_ACCOUNT_ID,
+                    "token_program": TOKEN_PROGRAM_ID,
+                    "associated_token_program": ASSOCIATED_TOKEN_PROGRAM_ID,
+                    "system_program": SYS_PROGRAM_ID,
+                },
+            ),
+        )
+        return ix
 
 
 

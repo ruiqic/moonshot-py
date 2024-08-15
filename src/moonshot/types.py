@@ -4,6 +4,7 @@ from solders.pubkey import Pubkey
 from borsh_construct.enum import _rust_enum
 from sumtypes import constructor
 
+
 def is_variant(enum, type: str) -> bool:
     return type in str(enum)
 
@@ -102,7 +103,7 @@ class TokenMintParams:
 class TradeParams:
     token_amount: int
     collateral_amount: int
-    fixed_size: int
+    fixed_side: int
     slippage_bps: int
 
 
