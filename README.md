@@ -7,6 +7,7 @@ git clone https://github.com/ruiqic/moonshot-py.git
 cd moonshot-py
 pip install -e .
 ```
+Donations appreciated to `C7NJhQmVpCQ9AgLoU4kWW62EApndJH1HoGYWejQJyr7`
 
 ## Example Usage
 ```python
