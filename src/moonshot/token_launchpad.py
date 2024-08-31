@@ -40,8 +40,7 @@ class TokenLaunchpad:
         self.opts = opts
 
         file = Path(str(moonshot.__path__[0]) + "/moonshot.json")
-        with file.open() as f:
-            raw = file.read_text()
+        raw = file.read_text()
         idl = Idl.from_json(raw)
 
         provider = Provider(connection, wallet, opts)
