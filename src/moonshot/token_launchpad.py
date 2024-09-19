@@ -63,9 +63,11 @@ class TokenLaunchpad:
     async def get_token_amount_by_collateral(
         self,
         amount: int,
-        trade_direction: TradeType
+        trade_direction: TradeType,
+        curve_account: Optional[CurveAccount] = None
     ) -> int:
-        curve_account = await self.get_curve_account()
+        if curve_account is None:
+            curve_account = await self.get_curve_account()
         if self.curve is None:
             self.curve = self.get_curve(curve_account)
         return self.curve.get_tokens_amount_from_collateral(amount, curve_account, trade_direction)
@@ -73,9 +75,11 @@ class TokenLaunchpad:
     async def get_collateral_amount_by_tokens(
         self,
         amount: int,
-        trade_direction: TradeType
+        trade_direction: TradeType,
+        curve_account: Optional[CurveAccount] = None
     ) -> int:
-        curve_account = await self.get_curve_account()
+        if curve_account is None:
+            curve_account = await self.get_curve_account()
         if self.curve is None:
             self.curve = self.get_curve(curve_account)
         return self.curve.get_collateral_amount_from_tokens(amount, curve_account, trade_direction)
@@ -95,17 +99,18 @@ class TokenLaunchpad:
         self,
         amount: int,
         fixed_side: Optional[FixedSide] = None,
-        slippage_bps: int = 100
+        slippage_bps: int = 100,
+        curve_account: Optional[CurveAccount] = None
     ) -> Instruction:
         if fixed_side is None:
             fixed_side = DEFAULT_FIXED_SIDE
 
         if is_variant(fixed_side, "ExactIn"):
             collateral_amount = amount
-            token_amount = await self.get_token_amount_by_collateral(collateral_amount, TradeType.Buy())
+            token_amount = await self.get_token_amount_by_collateral(collateral_amount, TradeType.Buy(), curve_account)
         else:
             token_amount = amount
-            collateral_amount = await self.get_collateral_amount_by_tokens(token_amount, TradeType.Buy())
+            collateral_amount = await self.get_collateral_amount_by_tokens(token_amount, TradeType.Buy(), curve_account)
 
         trade_params = TradeParams(
             token_amount=token_amount,
@@ -138,17 +143,18 @@ class TokenLaunchpad:
         self,
         amount: int,
         fixed_side: Optional[FixedSide] = None,
-        slippage_bps: int = 100
+        slippage_bps: int = 100,
+        curve_account: Optional[CurveAccount] = None
     ) -> Instruction:
         if fixed_side is None:
             fixed_side = DEFAULT_FIXED_SIDE
 
         if is_variant(fixed_side, "ExactOut"):
             collateral_amount = amount
-            token_amount = await self.get_token_amount_by_collateral(collateral_amount, TradeType.Sell())
+            token_amount = await self.get_token_amount_by_collateral(collateral_amount, TradeType.Sell(), curve_account)
         else:
             token_amount = amount
-            collateral_amount = await self.get_collateral_amount_by_tokens(token_amount, TradeType.Sell())
+            collateral_amount = await self.get_collateral_amount_by_tokens(token_amount, TradeType.Sell(), curve_account)
 
         trade_params = TradeParams(
             token_amount=token_amount,
